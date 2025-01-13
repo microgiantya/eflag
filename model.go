@@ -26,8 +26,8 @@ func (t option) isSet(providedOptions option) bool {
 
 type carrier struct {
 	ptr     any
-	uptr    unsafe.Pointer
 	value   any
+	uptr    unsafe.Pointer
 	efName  string
 	efUsage string
 }

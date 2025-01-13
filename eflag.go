@@ -2,8 +2,16 @@ package eflag
 
 import (
 	"flag"
+	"fmt"
 	"reflect"
 )
+
+var errDefaultMessage = `
+Currently supported kinds (in term of [reflect] package) (including pointers and aliases):
+	bool, string, int64, float64, struct.
+A double pointer returns an error without the possibility of traversal.
+Any other kinds return errors, but can be skipped with provided [OptionContinueOnUnknownKind] option.
+`
 
 func checkInput(t any) error {
 	if reflect.ValueOf(t).Kind() != reflect.Pointer || reflect.ValueOf(t).Elem().Kind() != reflect.Struct {
@@ -12,17 +20,17 @@ func checkInput(t any) error {
 	return nil
 }
 
-func ParseFromFlagSet(t any, options option, flagSet *flag.FlagSet, argumentList []string) error {
+func parseFromFlagSet(t any, options option, flagSet *flag.FlagSet, argumentList []string) error {
 	if err := checkInput(t); err != nil {
-		return err
+		return fmt.Errorf("%w, %s", err, errDefaultMessage)
 	}
 
 	if err := parseToStruct(t, flagSet, options); err != nil {
-		return err
+		return fmt.Errorf("%w, %s", err, errDefaultMessage)
 	}
 
 	if err := flagSet.Parse(argumentList); err != nil {
-		return err
+		return fmt.Errorf("%w, %s", err, errDefaultMessage)
 	}
 
 	return nil
