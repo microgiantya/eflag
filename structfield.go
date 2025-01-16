@@ -3,6 +3,7 @@ package eflag
 import (
 	"flag"
 	"reflect"
+	"time"
 )
 
 func structFieldValidate(t any) error {
@@ -36,6 +37,16 @@ func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, options option) erro
 			crr.efUsage,
 		)
 	case reflect.Int64:
+		switch crr.value.(type) {
+		case time.Duration:
+			flagSet.DurationVar(
+				(*time.Duration)(crr.uptr),
+				crr.efName,
+				reflect.ValueOf(crr.value).Interface().(time.Duration),
+				crr.efUsage,
+			)
+			return nil
+		}
 		flagSet.Int64Var(
 			(*int64)(crr.uptr),
 			crr.efName,
