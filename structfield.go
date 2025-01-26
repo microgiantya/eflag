@@ -13,7 +13,7 @@ func structFieldValidate(t any) error {
 	return nil
 }
 
-func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, options option) error {
+func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, options option, namespace string) error {
 	if err := structFieldValidate(crr.ptr); err != nil {
 		return err
 	}
@@ -28,11 +28,15 @@ func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, options option) erro
 		return nil
 	}
 
+	if namespace != "" {
+		namespace += "-"
+	}
+
 	switch kind {
 	case reflect.Bool:
 		flagSet.BoolVar(
 			(*bool)(crr.uptr),
-			crr.efName,
+			namespace+crr.efName,
 			reflect.ValueOf(crr.value).Bool(),
 			crr.efUsage,
 		)
@@ -41,34 +45,35 @@ func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, options option) erro
 		case time.Duration:
 			flagSet.DurationVar(
 				(*time.Duration)(crr.uptr),
-				crr.efName,
+				namespace+crr.efName,
 				reflect.ValueOf(crr.value).Interface().(time.Duration),
 				crr.efUsage,
 			)
 			return nil
+		default:
 		}
 		flagSet.Int64Var(
 			(*int64)(crr.uptr),
-			crr.efName,
+			namespace+crr.efName,
 			reflect.ValueOf(crr.value).Int(),
 			crr.efUsage,
 		)
 	case reflect.Float64:
 		flagSet.Float64Var(
 			(*float64)(crr.uptr),
-			crr.efName,
+			namespace+crr.efName,
 			reflect.ValueOf(crr.value).Float(),
 			crr.efUsage,
 		)
 	case reflect.String:
 		flagSet.StringVar(
 			(*string)(crr.uptr),
-			crr.efName,
+			namespace+crr.efName,
 			reflect.ValueOf(crr.value).String(),
 			crr.efUsage,
 		)
 	case reflect.Struct:
-		if err := parseToStruct(crr.ptr, flagSet, options); err != nil {
+		if err := parseToStruct(crr.ptr, flagSet, options, crr.efName); err != nil {
 			return err
 		}
 	default:

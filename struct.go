@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func parseToStruct(t any, flagSet *flag.FlagSet, options option) error {
+func parseToStruct(t any, flagSet *flag.FlagSet, options option, namespace string) error {
 	var val = reflect.ValueOf(t).Elem()
 	var typ = val.Type()
 
@@ -34,7 +34,7 @@ func parseToStruct(t any, flagSet *flag.FlagSet, options option) error {
 			crr.value = fieldValue.Interface()
 		}
 
-		if err := parseToStructFiled(crr, flagSet, options); err != nil {
+		if err := parseToStructFiled(crr, flagSet, options, namespace); err != nil {
 			return err
 		}
 	}
