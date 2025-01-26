@@ -3,7 +3,10 @@ package eflag
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"reflect"
+
+	json "github.com/goccy/go-json"
 )
 
 var errDefaultMessage = `
@@ -14,6 +17,8 @@ Any other kinds return errors, but can be skipped with provided [OptionContinueO
 
 If the "efName" tag exists for a nested struct, it will be added as a prefix to the nested struct fields.
 `
+
+var processed any
 
 func checkInput(t any) error {
 	if reflect.ValueOf(t).Kind() != reflect.Pointer || reflect.ValueOf(t).Elem().Kind() != reflect.Struct {
@@ -34,7 +39,7 @@ func parseFromFlagSet(t any, options option, flagSet *flag.FlagSet, argumentList
 	if err := flagSet.Parse(argumentList); err != nil {
 		return fmt.Errorf("%w, %s", err, errDefaultMessage)
 	}
-
+	processed, _ = json.Marshal(t)
 	return nil
 }
 
@@ -47,5 +52,12 @@ func Parse(t any, options option) error {
 	}
 
 	flag.Parse()
+	processed, _ = json.Marshal(t)
 	return nil
+}
+
+func Handler() http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		w.Write(processed.([]byte))
+	}
 }
