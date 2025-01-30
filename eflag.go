@@ -2,6 +2,9 @@
 // by setting the structure field tags 'efName' and 'efUsage'.
 // For the actual parsing, the standard [flag] package is used without overriding
 // its behavior.
+// If the 'efName' tag exists for a nested struct type field, it will be
+// added as a prefix to the fields with not empty 'efName' tag of this struct
+// (except struct type).
 package eflag
 
 import (
@@ -48,7 +51,7 @@ func parseWithFlagSet(flagSet *flag.FlagSet, argumentList []string, t any, optio
 	return nil
 }
 
-// Handler just return json representation of provided struct.
+// Handler write json representation of provided struct.
 func Handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write(parsed)
