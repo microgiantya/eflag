@@ -1,0 +1,63 @@
+// Package eflag allows command line flags to be bound to structure fields
+// by setting the structure field tags 'efName' and 'efUsage'.
+// For the actual parsing, the standard [flag] package is used without overriding
+// its behavior.
+package eflag
+
+import (
+	"flag"
+	"net/http"
+	"os"
+	"reflect"
+
+	json "github.com/goccy/go-json"
+)
+
+var parsed []byte
+
+// Parse accepts not nil pointer to struct as a first argument.
+// Supported field types (including pointers and aliases) is
+// bool, string, int64, float64, struct and [time.Duration].
+// Any nil pointer types will be intialized.
+// Fields of type pointer to pointer cause an error.
+// For now options is only for future compatibility.
+func Parse(t any, options ...option) error {
+	return parseWithFlagSet(flag.CommandLine, os.Args[1:], t, options...)
+}
+
+func parseWithFlagSet(flagSet *flag.FlagSet, argumentList []string, t any, options ...option) error {
+	if flagSet.Parsed() {
+		return errWrap(ErrAlreadyParsed)
+	}
+
+	if err := checkInput(t); err != nil {
+		return errWrap(err)
+	}
+
+	option := newOption(options...)
+
+	if err := parseToStruct(t, flagSet, option, ""); err != nil {
+		return errWrap(err)
+	}
+
+	if err := flagSet.Parse(argumentList); err != nil {
+		return errWrap(err)
+	}
+
+	parsed, _ = json.Marshal(t)
+	return nil
+}
+
+// Handler just return json representation of provided struct.
+func Handler() http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write(parsed)
+	}
+}
+
+func checkInput(t any) error {
+	if reflect.ValueOf(t).Kind() != reflect.Pointer || reflect.ValueOf(t).Elem().Kind() != reflect.Struct {
+		return ErrInvalidInput
+	}
+	return nil
+}
