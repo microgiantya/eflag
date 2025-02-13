@@ -2,8 +2,11 @@ package eflag
 
 import (
 	"flag"
+	"fmt"
 	"reflect"
 	"time"
+
+	"git.zonatelecom.ru/e.artemev/eflag/pkg/constvalues"
 )
 
 func structFieldValidate(t any) error {
@@ -28,56 +31,57 @@ func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, option option, names
 		return nil
 	}
 
-	if namespace != "" {
-		namespace += "-"
-	}
+	flagName := getFlagName(namespace, crr.efName)
+	flagNameC := getFlagNameColor(namespace, crr.efName, option)
+	flagUsage := getUsage(crr.efUsage, namespaceAdapt(namespace)+crr.efName, option)
 
-	if crr.efUsage == "" {
-		crr.efUsage = "set " + namespace + crr.efName
-	}
+	// fmt.Printf("%#v\n", crr.value)
+	fmt.Printf("TYPE: %T\n", crr.value)
+	values := constvalues.GetConstValuesByType(crr.value)
+	fmt.Println(values)
 
 	switch kind {
 	case reflect.Bool:
 		flagSet.BoolVar(
 			(*bool)(crr.uptr),
-			namespace+crr.efName,
-			reflect.ValueOf(crr.value).Bool(),
-			crr.efUsage,
+			flagNameC,
+			getValueBool(crr.value, option, flagName),
+			flagUsage,
 		)
 	case reflect.Int64:
 		switch crr.value.(type) {
 		case time.Duration:
 			flagSet.DurationVar(
 				(*time.Duration)(crr.uptr),
-				namespace+crr.efName,
-				reflect.ValueOf(crr.value).Interface().(time.Duration), //nolint:all // no error returned here.
-				crr.efUsage,
+				flagNameC,
+				getValueDuration(reflect.ValueOf(crr.value).Interface().(time.Duration), option, flagName), //nolint:all // no error returned here.
+				flagUsage,
 			)
 			return nil
 		default:
 		}
 		flagSet.Int64Var(
 			(*int64)(crr.uptr),
-			namespace+crr.efName,
-			reflect.ValueOf(crr.value).Int(),
-			crr.efUsage,
+			flagNameC,
+			getValueInt64(reflect.ValueOf(crr.value).Int(), option, flagName),
+			flagUsage,
 		)
 	case reflect.Float64:
 		flagSet.Float64Var(
 			(*float64)(crr.uptr),
-			namespace+crr.efName,
-			reflect.ValueOf(crr.value).Float(),
-			crr.efUsage,
+			flagNameC,
+			getValueFloat64(reflect.ValueOf(crr.value).Float(), option, flagName),
+			flagUsage,
 		)
 	case reflect.String:
 		flagSet.StringVar(
 			(*string)(crr.uptr),
-			namespace+crr.efName,
-			reflect.ValueOf(crr.value).String(),
-			crr.efUsage,
+			flagNameC,
+			getValueString(reflect.ValueOf(crr.value).String(), option, flagName),
+			flagUsage,
 		)
 	case reflect.Struct:
-		if err := parseToStruct(crr.ptr, flagSet, option, crr.efName); err != nil {
+		if err := parseToStruct(crr.ptr, flagSet, option, namespaceAdapt(namespace)+crr.efName); err != nil {
 			return err
 		}
 	default:

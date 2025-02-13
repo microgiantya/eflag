@@ -2,6 +2,11 @@ package eflag
 
 type option uint64
 
+const (
+	WithEnv option = 1 << iota
+	WithColor
+)
+
 func newOption(providedOptions ...option) option {
 	var resultingOption option
 	for _, opt := range providedOptions {
