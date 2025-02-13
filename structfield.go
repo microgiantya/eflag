@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"time"
 
-	"git.zonatelecom.ru/e.artemev/eflag/pkg/constvalues"
+	"github.com/microgiantya/eflag/pkg/constvalues"
 )
 
 func structFieldValidate(t any) error {
