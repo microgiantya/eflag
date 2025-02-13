@@ -1,4 +1,4 @@
-module git.zonatelecom.ru/e.artemev/eflag
+module github.com/microgiantya/eflag
 
 go 1.23.4
 

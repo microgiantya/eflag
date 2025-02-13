@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"git.zonatelecom.ru/e.artemev/eflag/pkg/constvalues"
-	"git.zonatelecom.ru/e.artemev/eflag/pkg/constvalues/testtypes"
+	"github.com/microgiantya/eflag/pkg/constvalues"
+	"github.com/microgiantya/eflag/pkg/constvalues/testtypes"
 )
 
 func TestGetConstValuesByType(t *testing.T) {
