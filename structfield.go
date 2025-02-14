@@ -2,11 +2,8 @@ package eflag
 
 import (
 	"flag"
-	"fmt"
 	"reflect"
 	"time"
-
-	"github.com/microgiantya/eflag/pkg/constvalues"
 )
 
 func structFieldValidate(t any) error {
@@ -34,11 +31,6 @@ func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, option option, names
 	flagName := getFlagName(namespace, crr.efName)
 	flagNameC := getFlagNameColor(namespace, crr.efName, option)
 	flagUsage := getUsage(crr.efUsage, namespaceAdapt(namespace)+crr.efName, option)
-
-	// fmt.Printf("%#v\n", crr.value)
-	fmt.Printf("TYPE: %T\n", crr.value)
-	values := constvalues.GetConstValuesByType(crr.value)
-	fmt.Println(values)
 
 	switch kind {
 	case reflect.Bool:
