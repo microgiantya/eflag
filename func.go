@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func namespaceAdapt(namespace string) string {
+func getNamespaceAdapted(namespace string) string {
 	if namespace != "" {
 		namespace += "-"
 	}
@@ -18,11 +18,11 @@ func namespaceAdapt(namespace string) string {
 }
 
 func getFlagName(namespace, flagName string) string {
-	return namespaceAdapt(namespace) + flagName
+	return getNamespaceAdapted(namespace) + flagName
 }
 
-func getFlagNameColor(namespace, flagName string, option option) string {
-	flagName = namespaceAdapt(namespace) + flagName
+func getFlagNameWithColor(namespace, flagName string, option option) string {
+	flagName = getNamespaceAdapted(namespace) + flagName
 	if WithColor.isSet(option) {
 		flagName = color.RedString(flagName)
 	}
@@ -34,17 +34,13 @@ func getUsage(flagUsage, flagName string, option option) string {
 		flagUsage = "set " + flagName
 	}
 
-	// if WithColor.isSet(option) {
-	// 	flagUsage = color.GreenString(flagUsage)
-	// }
-
 	if WithEnv.isSet(option) {
-		flagUsage = "env: " + getEnvColor(flagName, option) + "\n" + flagUsage
+		flagUsage = "env: " + getEnvWithColor(flagName, option) + "\n" + flagUsage
 	}
 	return flagUsage
 }
 
-func getEnvColor(s string, option option) string {
+func getEnvWithColor(s string, option option) string {
 	env := "APP_" + strings.ReplaceAll(strings.ToUpper(s), "-", "_")
 	if WithColor.isSet(option) {
 		return color.CyanString(env)

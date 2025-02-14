@@ -558,7 +558,9 @@ issues:
   exclude-case-sensitive: false
   exclude-rules:
     - path: "_test\\.go"
-      linters: lll
+      linters:
+        - lll
+        - govet
     - path: "_gen\\.go"
       linters: all
   fix: false

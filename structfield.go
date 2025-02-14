@@ -29,8 +29,8 @@ func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, option option, names
 	}
 
 	flagName := getFlagName(namespace, crr.efName)
-	flagNameC := getFlagNameColor(namespace, crr.efName, option)
-	flagUsage := getUsage(crr.efUsage, namespaceAdapt(namespace)+crr.efName, option)
+	flagNameC := getFlagNameWithColor(namespace, crr.efName, option)
+	flagUsage := getUsage(crr.efUsage, getNamespaceAdapted(namespace)+crr.efName, option)
 
 	switch kind {
 	case reflect.Bool:
@@ -73,7 +73,7 @@ func parseToStructFiled(crr carrier, flagSet *flag.FlagSet, option option, names
 			flagUsage,
 		)
 	case reflect.Struct:
-		if err := parseToStruct(crr.ptr, flagSet, option, namespaceAdapt(namespace)+crr.efName); err != nil {
+		if err := parseToStruct(crr.ptr, flagSet, option, getNamespaceAdapted(namespace)+crr.efName); err != nil {
 			return err
 		}
 	default:
