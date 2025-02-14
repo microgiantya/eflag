@@ -19,11 +19,20 @@ import (
 var parsed []byte
 
 // Parse accepts not nil pointer to struct as a first argument.
-// Supported field types (including pointers and aliases) is
+// Supported field types (including pointers and custom types) is
 // bool, string, int64, float64, struct and [time.Duration].
 // Any nil pointer types will be intialized.
 // Fields of type pointer to pointer cause an error.
 // For now options is only for future compatibility.
+//
+// Available options is:
+// WithEnv - reads the env variable with lower priority.
+// The env variable name is created from the flag name by converting
+// all letters to uppercase, replacing dashes with underscores,
+// and adding the "APP_" prefix.
+//
+// WithColor - highlights the flag name and, if enables WithEnv, the environment
+// variable name in the help.
 func Parse(t any, options ...option) error {
 	return parseWithFlagSet(flag.CommandLine, os.Args[1:], t, options...)
 }

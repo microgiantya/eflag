@@ -3,6 +3,7 @@ package eflag
 import (
 	"encoding/json"
 	"flag"
+	"os"
 	"testing"
 	"time"
 
@@ -10,11 +11,11 @@ import (
 )
 
 type (
-	BoolAlias         bool
-	Int64Alias        int64
-	Float64Alias      float64
-	StringAlias       string
-	TimeDurationAlias time.Duration
+	BoolCustom         bool
+	Int64Custom        int64
+	Float64Custom      float64
+	StringCustom       string
+	TimeDurationCustom time.Duration
 )
 
 func Test_parseFromFlagSet_negative(t *testing.T) {
@@ -147,7 +148,7 @@ func Test_parseFromFlagSet_panic(t *testing.T) {
 	}
 }
 
-func Test_parseFromFlagSet_positive(t *testing.T) {
+func Test_parseFromFlagSet_positive_flag_only(t *testing.T) {
 	type parseFromFlagSetArgs struct {
 		t            any
 		argumentList []string
@@ -191,26 +192,25 @@ func Test_parseFromFlagSet_positive(t *testing.T) {
 					"-struct-time-duration=3s",
 				},
 			},
-			err:          ErrAlreadyParsed,
 			expectedJSON: `{"Struct":{"String":"mystructstring","Bool":false,"Float64":3,"Int64":88,"TimeDuration":3000000000,"NoSetString":""},"String":"mystring","Float64":2,"Int64":1,"TimeDuration":5000000000,"Bool":true}`,
 		},
 		{
-			name: "positive alias",
+			name: "positive custom",
 			args: parseFromFlagSetArgs{
 				t: &struct {
 					Struct struct {
-						StringAlias       *StringAlias       `efName:"string"`
-						BoolAlias         *BoolAlias         `efName:"bool"`
-						Float64Alias      *Float64Alias      `efName:"float64"`
-						Int64             *Int64Alias        `efName:"int64"`
-						TimeDurationAlias *TimeDurationAlias `efName:"time-duration"`
-						NoSetString       *StringAlias
+						StringCustom       *StringCustom       `efName:"string"`
+						BoolCustom         *BoolCustom         `efName:"bool"`
+						Float64Custom      *Float64Custom      `efName:"float64"`
+						Int64              *Int64Custom        `efName:"int64"`
+						TimeDurationCustom *TimeDurationCustom `efName:"time-duration"`
+						NoSetString        *StringCustom
 					} `efName:"struct"`
-					StringAlias       StringAlias       `efName:"string"`
-					Float64Alias      Float64Alias      `efName:"float64"`
-					Int64Alias        Int64Alias        `efName:"int64"`
-					TimeDurationAlias TimeDurationAlias `efName:"time-duration"`
-					BoolAlias         BoolAlias         `efName:"bool"`
+					StringCustom       StringCustom       `efName:"string"`
+					Float64Custom      Float64Custom      `efName:"float64"`
+					Int64Custom        Int64Custom        `efName:"int64"`
+					TimeDurationCustom TimeDurationCustom `efName:"time-duration"`
+					BoolCustom         BoolCustom         `efName:"bool"`
 				}{},
 				argumentList: []string{
 					"-string=mystring",
@@ -223,8 +223,7 @@ func Test_parseFromFlagSet_positive(t *testing.T) {
 					"-struct-int64", "88",
 				},
 			},
-			err:          ErrAlreadyParsed,
-			expectedJSON: `{"Struct":{"StringAlias":"mystructstring","BoolAlias":true,"Float64Alias":0,"Int64":0,"TimeDurationAlias":0,"NoSetString":""},"StringAlias":"mystring","Float64Alias":2,"Int64Alias":1,"TimeDurationAlias":0,"BoolAlias":true}`,
+			expectedJSON: `{"Struct":{"StringCustom":"mystructstring","BoolCustom":true,"Float64Custom":0,"Int64":0,"TimeDurationCustom":0,"NoSetString":""},"StringCustom":"mystring","Float64Custom":2,"Int64Custom":1,"TimeDurationCustom":0,"BoolCustom":true}`,
 		},
 	}
 
@@ -240,5 +239,121 @@ func Test_parseFromFlagSet_positive(t *testing.T) {
 			actualJSON, _ := json.Marshal(testCase.args.t)
 			assert.Equal(t, testCase.expectedJSON, string(actualJSON))
 		})
+	}
+}
+
+func Test_parseFromFlagSet_positive_with_env(t *testing.T) {
+	type parseFromFlagSetArgs struct {
+		t            any
+		argumentList []string
+		envList      map[string]string
+		options      option
+	}
+
+	testCases := []struct {
+		err          error
+		name         string
+		expectedJSON string
+		args         parseFromFlagSetArgs
+	}{
+		{
+			name: "positive",
+			args: parseFromFlagSetArgs{
+				t: &struct {
+					Struct struct {
+						String       *string        `efName:"string"`
+						Bool         *bool          `efName:"bool"`
+						Float64      *float64       `efName:"float64"`
+						Int64        *int64         `efName:"int64"`
+						TimeDuration *time.Duration `efName:"time-duration"`
+						NoSetString  *string
+					} `efName:"struct"`
+					String       string        `efName:"string"`
+					Float64      float64       `efName:"float64"`
+					Int64        int64         `efName:"int64"`
+					TimeDuration time.Duration `efName:"time-duration"`
+					Bool         bool          `efName:"bool"`
+				}{},
+				argumentList: []string{
+					"-string=mystring",
+					"-bool",
+					"-int64=1",
+					"-time-duration=5s",
+					"-struct-string=mystructstring",
+					"-struct-bool=false",
+					"-struct-float64=3",
+					"-struct-int64=88",
+				},
+				envList: map[string]string{
+					"APP_FLOAT64":              "45.6",
+					"APP_STRUCT_TIME_DURATION": "10s",
+					"APP_STRUCT_INT64":         "89",
+				},
+				options: WithEnv,
+			},
+			expectedJSON: `{"Struct":{"String":"mystructstring","Bool":false,"Float64":3,"Int64":88,"TimeDuration":10000000000,"NoSetString":""},"String":"mystring","Float64":45.6,"Int64":1,"TimeDuration":5000000000,"Bool":true}`,
+		},
+		{
+			name: "positive custom",
+			args: parseFromFlagSetArgs{
+				t: &struct {
+					Struct struct {
+						StringCustom       *StringCustom       `efName:"string"`
+						BoolCustom         *BoolCustom         `efName:"bool"`
+						Float64Custom      *Float64Custom      `efName:"float64"`
+						Int64Custom        *Int64Custom        `efName:"int64"`
+						TimeDurationCustom *TimeDurationCustom `efName:"time-duration"`
+						NoSetString        *StringCustom
+					} `efName:"struct"`
+					StringCustom       StringCustom       `efName:"string"`
+					Float64Custom      Float64Custom      `efName:"float64"`
+					Int64Custom        Int64Custom        `efName:"int64"`
+					TimeDurationCustom TimeDurationCustom `efName:"time-duration"`
+					BoolCustom         BoolCustom         `efName:"bool"`
+				}{},
+				argumentList: []string{
+					"-string=mystring",
+					"-bool",
+					"-float64=2",
+					"-int64=1",
+					"-struct-string=mystructstring",
+					"-struct-bool", "false",
+					"--struct-float64=3",
+					"-struct-int64", "88",
+				},
+			},
+			expectedJSON: `{"Struct":{"StringCustom":"mystructstring","BoolCustom":true,"Float64Custom":0,"Int64Custom":0,"TimeDurationCustom":0,"NoSetString":""},"StringCustom":"mystring","Float64Custom":2,"Int64Custom":1,"TimeDurationCustom":0,"BoolCustom":true}`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			setEnv(testCase.args.envList)
+			defer unsetEnv(testCase.args.envList)
+			err := parseWithFlagSet(
+				flag.NewFlagSet("test", flag.ExitOnError),
+				testCase.args.argumentList,
+				testCase.args.t,
+				testCase.args.options,
+			)
+			assert.Nil(t, err)
+			actualJSON, _ := json.Marshal(testCase.args.t)
+			assert.Equal(t, testCase.expectedJSON, string(actualJSON))
+		})
+	}
+}
+
+func setEnv(envList map[string]string) {
+	for k, v := range envList {
+		if err := os.Setenv(k, v); err != nil {
+			panic(err)
+		}
+	}
+}
+func unsetEnv(envList map[string]string) {
+	for k := range envList {
+		if err := os.Unsetenv(k); err != nil {
+			panic(err)
+		}
 	}
 }
